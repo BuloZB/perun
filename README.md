@@ -1,6 +1,6 @@
 # ✨ Perun Trading System ✨
 
-Welcome to **Perun**, an automated trading system designed to leverage the power of Large Language Models (LLMs) for market analysis and trade execution. Perun analyzes market data, generates trading signals, manages a portfolio, and interacts with brokerage APIs, all orchestrated within a modular and configurable framework.
+Welcome to **Perun**, an automated trading system designed to leverage the power of Large Language Models (LLMs) for market analysis and trade execution. Perun analyzes market data, generates trading signals, manages a portfolio, and interacts with brokerage APIs, all orchestrated within a modular and configurable framework. For a deeper dive into the system's concepts and workflow, see the [🌌 Conceptual Overview](./docs/system_overview.md).
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) <!-- Example Badge -->
 
