@@ -106,9 +106,10 @@ ALPACA_SECRET_KEY = get_required_string("ALPACA_SECRET_KEY")
 ALPACA_BASE_URL = get_required_string("ALPACA_BASE_URL")
 IS_PAPER_TRADING = "paper-api" in ALPACA_BASE_URL
 
-# LLM
+# LLM & Research APIs
 OPENAI_API_KEY = get_string("OPENAI_API_KEY") # Optional: User might only use one LLM provider
 GEMINI_API_KEY = get_string("GEMINI_API_KEY")   # Optional: User might only use one LLM provider
+PERPLEXITY_API_KEY = get_string("PERPLEXITY_API_KEY") # Optional: For market research via Perplexity
 # Define specific models for different tasks - All required
 TRADING_ANALYSIS_LLM_MODEL = get_string("TRADING_ANALYSIS_LLM_MODEL", required=True)
 MEMORY_ORGANIZATION_LLM_MODEL = get_string("MEMORY_ORGANIZATION_LLM_MODEL", required=True) # If MemoryOrganizer uses LLM

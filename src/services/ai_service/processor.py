@@ -13,6 +13,7 @@ from ...models.market_data import MarketDataSnapshot
 from ...models.portfolio import Portfolio
 from ...interfaces.large_language_model import LLMInterface
 from ...interfaces.brokerage import BrokerageInterface # Needed for context if required by prompt
+from ...interfaces.perplexity import PerplexityInterface # Import Perplexity
 from ..memory_service.storage import MemoryStorage # Direct storage access for now
 
 # --- Constants ---
@@ -29,13 +30,17 @@ class AIServiceProcessor:
         self,
         llm_interface: LLMInterface,
         brokerage_interface: BrokerageInterface, # Pass brokerage for potential context
-        memory_storage: MemoryStorage
+        memory_storage: MemoryStorage,
+        perplexity_interface: Optional[PerplexityInterface] = None # Add Perplexity interface
     ):
         self.llm = llm_interface
         self.brokerage = brokerage_interface # Store for context if needed
         self.memory_storage = memory_storage
+        self.perplexity = perplexity_interface # Store Perplexity interface
         self.prompts_path = config.PROMPTS_PATH
         log.info("AIServiceProcessor initialized.")
+        if not self.perplexity:
+            log.warning("PerplexityInterface not provided to AIServiceProcessor. Market research insights will be unavailable.")
 
     def _load_prompt(self, prompt_name: str) -> str:
         """Loads a prompt template from the configured prompts directory."""
@@ -58,9 +63,10 @@ class AIServiceProcessor:
         prompt_template: str,
         market_data: MarketDataSnapshot,
         portfolio: Portfolio,
-        recent_history: Optional[List[MemoryEntry]] = None # Example history
+        recent_history: Optional[List[MemoryEntry]] = None, # Example history
+        perplexity_insights: Optional[str] = None # Add perplexity insights
     ) -> str:
-        """Formats the input data into the prompt string."""
+        """Formats the input data, including optional Perplexity insights, into the prompt string."""
         # This needs careful implementation based on the specific prompt structure.
         # Convert complex objects (like market data, portfolio) into a concise
         # text or JSON representation suitable for the LLM.
@@ -80,6 +86,8 @@ class AIServiceProcessor:
                  for entry in recent_history[:5] # Limit history length
              ])
 
+        # Prepare perplexity insights string for formatting
+        perplexity_summary = perplexity_insights if perplexity_insights else "No market research insights available from Perplexity."
 
         # Replace placeholders in the template
         try:
@@ -89,7 +97,8 @@ class AIServiceProcessor:
                 portfolio_summary_json=portfolio_summary,
                 positions_json=positions_summary,
                 recent_history_summary=history_summary,
-                target_symbols=", ".join(config.DEFAULT_SYMBOLS) # Example: provide target symbols
+                target_symbols=", ".join(config.DEFAULT_SYMBOLS), # Example: provide target symbols
+                perplexity_insights=perplexity_summary # Add perplexity insights placeholder
                 # Add other relevant context variables here
             )
             return formatted_prompt
@@ -210,13 +219,45 @@ class AIServiceProcessor:
             # 1. Load Prompt
             prompt_template = self._load_prompt(prompt_name)
 
-            # 2. Format Input Data (Fetch history if needed by the prompt)
+            # 2. Get Perplexity Insights (Optional)
+            perplexity_query = None
+            perplexity_response = None
+            if self.perplexity and config.PERPLEXITY_API_KEY:
+                # Construct a query based on target symbols or market data
+                target_symbols_str = ", ".join(config.DEFAULT_SYMBOLS)
+                perplexity_query = f"Provide recent market news and sentiment analysis for the following symbols: {target_symbols_str}."
+                log.info(f"Querying Perplexity for market insights: '{perplexity_query}'")
+                try:
+                    perplexity_response = self.perplexity.get_market_insights(perplexity_query)
+                    if perplexity_response:
+                        log.info("Received market insights from Perplexity.")
+                        analysis_memory_payload["perplexity_query"] = perplexity_query
+                        analysis_memory_payload["perplexity_response"] = perplexity_response
+                    else:
+                        log.warning("No insights received from Perplexity.")
+                        analysis_memory_payload["perplexity_query"] = perplexity_query
+                        analysis_memory_payload["perplexity_response"] = "Failed to retrieve or empty response."
+                except Exception as p_err:
+                    log.error(f"Error querying Perplexity: {p_err}", exc_info=True)
+                    analysis_memory_payload["perplexity_query"] = perplexity_query
+                    analysis_memory_payload["perplexity_error"] = str(p_err)
+            else:
+                log.info("Perplexity interface not available or API key not set. Skipping market research query.")
+
+
+            # 3. Format Input Data (Fetch history if needed by the prompt)
             # TODO: Implement fetching relevant history from MemoryStorage based on prompt requirements
             recent_history = None # Placeholder
-            formatted_prompt = self._format_input_data(prompt_template, market_data, portfolio, recent_history)
+            formatted_prompt = self._format_input_data(
+                prompt_template,
+                market_data,
+                portfolio,
+                recent_history,
+                perplexity_response # Pass insights to formatter
+            )
             analysis_memory_payload["prompt_sent"] = formatted_prompt # Store the actual prompt sent
 
-            # 3. Call LLM
+            # 4. Call LLM
             llm_response_json = self.llm.generate_json_response(
                 prompt=formatted_prompt,
                 model_name=model_to_use, # Use the configured trading model
@@ -224,10 +265,10 @@ class AIServiceProcessor:
             )
             analysis_memory_payload["raw_llm_response"] = llm_response_json # Store raw response
 
-            # 4. Parse Response
+            # 5. Parse Response
             signal = self._parse_llm_response(llm_response_json)
 
-            # 5. Finalize and Save Memory
+            # 6. Finalize and Save Memory
             if signal:
                 signal.originating_memory_id = analysis_memory_entry.entry_id
                 analysis_memory_payload["generated_signal"] = signal.model_dump(mode='json')
