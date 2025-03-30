@@ -77,84 +77,141 @@ pip install -r requirements.txt
 
 **4. Configure Environment Variables (`.env`):**
 
-Create a `.env` file in the project root (`perun/`). This file stores your API keys and configuration settings. **Do not commit this file to Git.**
+Create a `.env` file in the project root (`perun/`). This file stores your API keys and configuration settings. **Do not commit this file to Git.** Below is a template with detailed instructions on where to find each required value.
 
 ```dotenv
 #####################################################
 # Perun Trading System Environment Configuration    #
+# Detailed instructions for obtaining credentials   #
 #####################################################
 
-# --- Brokerage: Alpaca (Required) ---
-# 🔑 Get keys from: https://app.alpaca.markets/paper/dashboard/overview (Paper) or https://app.alpaca.markets/live/dashboard/overview (Live)
-ALPACA_API_KEY=YOUR_ALPACA_KEY_ID
-ALPACA_SECRET_KEY=YOUR_ALPACA_SECRET_KEY
-ALPACA_BASE_URL=https://paper-api.alpaca.markets # Use paper trading URL for testing
-# ALPACA_BASE_URL=https://api.alpaca.markets # Uncomment for live trading
+# --- 🏦 Brokerage: Alpaca (Required) ---
+# Purpose: Connects to the stock market for data and trading.
+# Instructions:
+# 1. Sign up/Log in: Go to https://alpaca.markets/ and create an account or log in.
+# 2. Paper vs Live: Decide if you want to test with fake money (Paper Trading) or real money (Live Trading). It's HIGHLY recommended to start with Paper Trading.
+# 3. Generate Keys:
+#    - Navigate to your dashboard (Paper or Live).
+#    - Find the API Keys section (often on the right side or under account settings).
+#    - Click "Generate New Key" or similar.
+#    - IMPORTANT: Copy both the 'API Key ID' and the 'Secret Key' immediately. The Secret Key is only shown once!
+# 4. Set URLs:
+#    - For Paper Trading: Use https://paper-api.alpaca.markets
+#    - For Live Trading: Use https://api.alpaca.markets
+ALPACA_API_KEY=YOUR_ALPACA_KEY_ID_HERE
+ALPACA_SECRET_KEY=YOUR_ALPACA_SECRET_KEY_HERE
+ALPACA_BASE_URL=https://paper-api.alpaca.markets # Start with Paper Trading!
 
-# --- LLM & Research APIs (Optional Keys, Required Models) ---
-# 🔑 OpenAI: https://platform.openai.com/api-keys (Needed if using OpenAI models)
-OPENAI_API_KEY=YOUR_OPENAI_KEY_IF_USING_OPENAI
+# --- 🧠 LLM & Research APIs (Optional Keys, Required Models) ---
+# Purpose: Provide AI capabilities for analysis and research. You only need keys for the services whose models you specify below.
 
-# 🔑 Google Gemini: https://aistudio.google.com/app/apikey (Needed if using Gemini models)
-GEMINI_API_KEY=YOUR_GOOGLE_KEY_IF_USING_GEMINI
+# --- OpenAI ---
+# Instructions:
+# 1. Sign up/Log in: Go to https://platform.openai.com/
+# 2. Navigate: Click on your profile icon/name (top-right).
+# 3. API Keys: Select "View API keys" or navigate to the "API Keys" section (might be under "Settings" or "Projects").
+# 4. Create Key: Click "Create new secret key". Give it a name (e.g., "Perun Trading Bot").
+# 5. Copy Key: Copy the generated key immediately (it won't be shown again) and paste it below.
+# 6. Funding: Note that using the OpenAI API requires adding payment information and incurs costs based on usage.
+OPENAI_API_KEY=YOUR_OPENAI_KEY_IF_USING_OPENAI_MODELS
 
-# 🔑 Perplexity AI: https://docs.perplexity.ai/docs/getting-started (Needed for market research feature)
-PERPLEXITY_API_KEY=YOUR_PERPLEXITY_API_KEY
+# --- Google Gemini ---
+# Instructions:
+# 1. Go to Google AI Studio: Visit https://aistudio.google.com/app/apikey
+# 2. Sign in: Log in with your Google Account.
+# 3. Create Key: Click "Create API key". You might need to create a new project first.
+# 4. Copy Key: Copy the generated API key and paste it below.
+# 5. Usage Limits: Be aware of potential free tier limits and associated costs for higher usage.
+GEMINI_API_KEY=YOUR_GOOGLE_KEY_IF_USING_GEMINI_MODELS
 
-# Specify the models for each task (MUST BE SET - Choose models accessible with your keys)
-# Example models: "gpt-4o", "gpt-3.5-turbo", "gemini-1.5-flash", "gemini-pro"
-TRADING_ANALYSIS_LLM_MODEL="gpt-4o"
-MEMORY_ORGANIZATION_LLM_MODEL="gpt-3.5-turbo" # Can use a cheaper/faster model
-OPTIMIZATION_LLM_MODEL="gpt-4o"
+# --- Perplexity AI ---
+# Instructions:
+# 1. Sign up/Log in: Go to https://perplexity.ai/
+# 2. Navigate: Click your profile icon (bottom-left), then select "API Keys" (or go to Settings -> API).
+# 3. Billing (If Required): You might need to set up billing information first. Follow the on-screen prompts.
+# 4. Generate Key: Click "Generate" or "Create New Key".
+# 5. Copy Key: Copy the generated API key and paste it below.
+# 6. Pricing: Check Perplexity's API pricing details.
+PERPLEXITY_API_KEY=YOUR_PERPLEXITY_API_KEY_IF_USING_PERPLEXITY
 
-# --- Notifications (Optional) ---
-# Mattermost (Set MATTERMOST_ENABLED=true to enable)
-# 🔑 Create a Bot Account: System Console -> Integrations -> Bot Accounts
-MATTERMOST_ENABLED=false
-MATTERMOST_URL=https://your.mattermost.instance.com # Your Mattermost server URL
-MATTERMOST_TOKEN=YOUR_MATTERMOST_BOT_TOKEN
-MATTERMOST_TEAM_ID=YOUR_MATTERMOST_TEAM_ID # Find in URL or via API
-MATTERMOST_CHANNEL_ID=YOUR_TARGET_CHANNEL_ID # Find in URL or via API
+# --- Model Selection (Required) ---
+# Purpose: Tell Perun which specific AI models to use for different tasks.
+# Instructions: Choose models compatible with the API keys you provided above.
+# Examples: "gpt-4o", "gpt-4-turbo", "gpt-3.5-turbo", "gemini-1.5-pro-latest", "gemini-1.5-flash-latest", "sonar-small-online" (Perplexity)
+# Ensure the chosen models are suitable for the task complexity and your budget.
+TRADING_ANALYSIS_LLM_MODEL="gpt-4o" # Model for the main trading decisions
+MEMORY_ORGANIZATION_LLM_MODEL="gpt-3.5-turbo" # Can often use a cheaper/faster model here
+OPTIMIZATION_LLM_MODEL="gpt-4o" # Model used by the optimization service
 
-# Email (Set EMAIL_ENABLED=true to enable)
-# 🔑 Use your email provider's SMTP details. For Gmail, you might need an "App Password".
-EMAIL_ENABLED=false
-SMTP_SERVER=smtp.example.com # e.g., smtp.gmail.com
-SMTP_PORT=587 # Common ports: 587 (TLS), 465 (SSL)
+# --- 📢 Notifications (Optional) ---
+# Purpose: Receive alerts about trades, errors, or system status.
+
+# --- Mattermost ---
+# Instructions (Requires access to a Mattermost server):
+# 1. Enable Bots: A System Admin needs to enable Bot Accounts (System Console -> Integrations -> Bot Accounts).
+# 2. Create Bot: As Admin, go to Integrations -> Bot Accounts -> "Add Bot Account".
+# 3. Fill Details: Give the bot a username (e.g., "perun_bot"), description.
+# 4. Get Token: After creation, copy the generated 'Token' immediately. This is your MATTERMOST_TOKEN.
+# 5. Get Server URL: This is the web address of your Mattermost instance (e.g., https://yourcompany.mattermost.com).
+# 6. Get Team ID: Navigate to the team you want the bot in. The Team ID is usually part of the URL (e.g., /team/TEAM_ID_HERE/...).
+# 7. Get Channel ID: Navigate to the specific channel for notifications. The Channel ID is often in the URL after the team ID (e.g., /channels/CHANNEL_ID_HERE).
+MATTERMOST_ENABLED=false # Set to true to enable
+MATTERMOST_URL=https://your.mattermost.instance.com
+MATTERMOST_TOKEN=YOUR_MATTERMOST_BOT_TOKEN_HERE
+MATTERMOST_TEAM_ID=YOUR_MATTERMOST_TEAM_ID_HERE
+MATTERMOST_CHANNEL_ID=YOUR_TARGET_CHANNEL_ID_HERE
+
+# --- Email (SMTP) ---
+# Instructions: Use the SMTP details from your email provider (e.g., Gmail, Outlook, SendGrid).
+# 1. Find SMTP Settings: Search your email provider's help documentation for "SMTP settings".
+# 2. Server & Port: Get the SMTP server address (e.g., smtp.gmail.com) and port (e.g., 587 for TLS, 465 for SSL).
+# 3. Credentials:
+#    - Username: Usually your full email address.
+#    - Password: This might be your regular email password OR an "App Password". For Gmail/Google Workspace with 2FA, you MUST generate an App Password (Search "Google App Passwords"). Using an App Password is more secure.
+# 4. Admin Email: The email address where notifications should be sent.
+EMAIL_ENABLED=false # Set to true to enable
+SMTP_SERVER=smtp.example.com
+SMTP_PORT=587
 SMTP_USERNAME=your_email@example.com
-SMTP_PASSWORD=your_email_or_app_password
-ADMIN_EMAIL=recipient_email@example.com # Email address to send notifications TO
+SMTP_PASSWORD=your_email_password_or_app_password
+ADMIN_EMAIL=recipient_email@example.com
 
-# --- File Paths (Required - Relative to project root) ---
+# --- 📁 File Paths (Required - Relative to project root) ---
+# Purpose: Define where Perun stores its data and finds its prompts. Defaults are usually fine.
 MEMDIR_PATH=data/memdir
 LOG_PATH=data/logs
 PROMPTS_PATH=prompts
 
-# --- Trading Parameters (Required) ---
+# --- 📈 Trading Parameters (Required) ---
+# Purpose: Define core trading behavior and risk management rules.
 DEFAULT_SYMBOLS=AAPL,MSFT,GOOG # Comma-separated list of symbols to trade
 MAX_POSITION_SIZE=10000 # Maximum value (USD) per position
 MAX_TOTAL_POSITIONS=5 # Maximum number of concurrent open positions
 RISK_LIMIT_PERCENT=0.02 # Max risk per trade as % of portfolio equity (e.g., 0.02 = 2%)
 
-# --- Logging Configuration (Optional - Defaults provided) ---
-LOG_LEVEL_CONSOLE=INFO # DEBUG, INFO, WARNING, ERROR, CRITICAL
+# --- 📝 Logging Configuration (Optional - Defaults provided) ---
+# Purpose: Control how much detail is logged to the console and files.
+LOG_LEVEL_CONSOLE=INFO # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
 LOG_LEVEL_FILE=DEBUG
 LOG_FILE_NAME=trading_system.log # Log filename within LOG_PATH
 
-# --- Optimization Parameters (Required if OPTIMIZATION_ENABLED=true) ---
+# --- 🛠️ Optimization Parameters (Required if OPTIMIZATION_ENABLED=true) ---
+# Purpose: Configure the self-optimization features.
 OPTIMIZATION_ENABLED=true # Set to false to disable optimization runs
 OPTIMIZATION_SCHEDULE=daily # How often to run optimization (e.g., 'daily', 'weekly', or cron: '0 3 * * 0' for 3 AM Sunday)
-OPTIMIZATION_PROMPT_THRESHOLD=0.05 # Min performance improvement (e.g., 5%) to accept a new prompt
+OPTIMIZATION_PROMPT_THRESHOLD=0.05 # Min performance improvement (e.g., 5%) needed to automatically switch prompts
 OPTIMIZATION_MIN_FREQUENCY=60 # Minimum trading frequency (seconds) allowed by optimization
-OPTIMIZATION_FREQUENCY_BUFFER_FACTOR=1.5 # Safety buffer for frequency calculation
+OPTIMIZATION_FREQUENCY_BUFFER_FACTOR=1.5 # Safety buffer multiplier for frequency calculation
 OPTIMIZATION_MEMORY_QUERY_DAYS=30 # How many days of history to query for optimization analysis
 
-# --- Memory Service Configuration (Required) ---
+# --- 💾 Memory Service Configuration (Required) ---
+# Purpose: Configure how the system's memory is managed.
 MEMDIR_PRUNE_MAX_AGE_DAYS=90 # Delete memory files older than this (0 to disable age pruning)
 MEMDIR_PRUNE_MAX_COUNT=100000 # Max memory files to keep (0 to disable count pruning)
-MEMDIR_ORGANIZER_MODEL=sentence-transformers/all-MiniLM-L6-v2 # Model for memory tagging/similarity
+MEMDIR_ORGANIZER_MODEL=sentence-transformers/all-MiniLM-L6-v2 # Model for memory tagging/similarity (runs locally)
 
-# --- Orchestration Service (Required) ---
+# --- 🕰️ Orchestration Service (Required) ---
+# Purpose: Configure the main control loop timing.
 MAIN_LOOP_SLEEP_INTERVAL=1 # Sleep interval (seconds) when idle (e.g., outside market hours)
 LIQUIDATE_ON_CLOSE=false # Set to true to liquidate all positions before market close
 ```
